@@ -16,6 +16,11 @@
 #define	PROCST_BLOQ	3
 #define	PROCST_TERMINO	4
 
+#define PRIO_MAX 0
+#define PRIO_ALTA 1
+#define PRIO_MEDIA 2
+#define PRIO_BAIXA 3
+
 /* Os campos "tid", "state", "prio" e "context" dessa estrutura devem ser mantidos e usados convenientemente
    Pode-se acrescentar outros campos APÓS os campos obrigatórios dessa estrutura
 */

@@ -27,5 +27,11 @@ int csem_init(csem_t *sem, int count);
 int cwait(csem_t *sem);
 int csignal(csem_t *sem);
 
-
+//###########################   APENAS PARA TESTES, DEVERA SER REMOVIDO   ############################
+#include <ucontext.h>
+void mainThread();
+void endThread();
+ucontext_t* setup_context(ucontext_t* next_context);
+ucontext_t* create_context(void* (*start)(void*), void *arg);
+ucontext_t* create_end_context();
 #endif
