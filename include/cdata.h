@@ -33,7 +33,7 @@ typedef struct s_TCB {
 	
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
-	
+	void* _joinRequestTCB;
 } TCB_t; 
 
 

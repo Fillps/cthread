@@ -37,7 +37,7 @@ void runThread(TCB_t* _tcb);
 void runNextThread();
 void freeBlockedThreads();
 void insertReadyQueue(TCB_t* tcb);
-void checkJoinRequests();
+void updateJoinRequests(TCB_t* tcb);
 
 ucontext_t* setup_empty_context();
 ucontext_t* setup_context(ucontext_t* next_context);
@@ -112,7 +112,35 @@ int cyield(void){
 *Caso contrário, retorna um valor negativo.
 */
 int cjoin(int tid){
-	//TODO
+	_runningTCB->prio += stopTimer();
+
+	TCB_t* joinRequest;
+	if ((joinRequest = findTBCbyTid(finished_queue, tid))!=NULL){	
+		insertReadyQueue(_runningTCB);
+	}
+	else if ((joinRequest = findTBCbyTid(ready_queue, tid))!=NULL){
+		_runningTCB->state = PROCST_BLOQ;
+		InsertByPrio(blocked_queue, _runningTCB);
+		joinRequest->_joinRequestTCB = _runningTCB;
+	}
+	else if ((joinRequest = findTBCbyTid(blocked_queue, tid))!=NULL){
+		_runningTCB->state = PROCST_BLOQ;
+		InsertByPrio(blocked_queue, _runningTCB);
+		joinRequest->_joinRequestTCB = _runningTCB;
+	}
+	else{
+		perror("Tid não encontrado");
+		return (-1);
+	}
+
+	BOOL isRet = FALSE;
+	getcontext(&(_runningTCB->context));
+	if (isRet == FALSE){
+		isRet = TRUE;
+		freeBlockedThreads();
+		runNextThread();
+		return -1;//runNextThread nao volta
+	}
 	return 0;
 }
 /*
@@ -191,7 +219,7 @@ void endThread(){
 	_runningTCB->prio += stopTimer();
 	_runningTCB->state = PROCST_TERMINO;
 	InsertByPrio(finished_queue, _runningTCB);
-	checkJoinRequests();
+	updateJoinRequests(_runningTCB);
 	freeBlockedThreads();
 	runNextThread();
 }
@@ -205,6 +233,7 @@ void runNextThread(){
 	FirstFila2(ready_queue);
 	_runningTCB = ready_queue->it->node;
 	DeleteAtIteratorFila2(ready_queue);
+	startTimer();
 	setcontext(&(_runningTCB->context));
 }
 
@@ -217,8 +246,12 @@ void insertReadyQueue(TCB_t* tcb){
 	InsertByPrio(ready_queue, tcb);
 }
 
-void checkJoinRequests(){
-	//TODO
+void updateJoinRequests(TCB_t* tcb){
+	if (tcb->_joinRequestTCB != NULL){
+		TCB_t* _joinTCB = tcb->_joinRequestTCB;
+		_joinTCB->state = PROCST_APTO;
+		tcb->_joinRequestTCB = NULL;
+	}
 }
 
 /*##############################################################

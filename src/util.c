@@ -56,10 +56,22 @@ TCB_t* create_tcb(ucontext_t context){
 	tcb->state = PROCST_CRIACAO;
 	tcb->prio = PRIO_MAX;
 	tcb->context = context;
+	tcb->_joinRequestTCB = NULL;
 
 	return tcb;
 }
 
+/*
+*Procura uma TCB na fila por tid
+*/
+TCB_t* findTBCbyTid(PFILA2 queue, int tid){
+	//TODO
+	if (IsFilaEmpty(queue)==TRUE){
+		return NULL;
+	}
+
+	return NULL;
+}
 
 
 
