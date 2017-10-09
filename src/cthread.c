@@ -37,6 +37,7 @@ void runThread(TCB_t* _tcb);
 void runNextThread();
 void freeBlockedThreads();
 void insertReadyQueue(TCB_t* tcb);
+void checkJoinRequests();
 
 ucontext_t* setup_empty_context();
 ucontext_t* setup_context(ucontext_t* next_context);
@@ -88,7 +89,18 @@ int ccreate (void* (*start)(void*), void *arg, int prio){
 *Caso contrário, retorna um valor negativo.
 */
 int cyield(void){
-	//TODO
+	_runningTCB->prio += stopTimer();
+	_runningTCB->state = PROCST_APTO;
+	insertReadyQueue(_runningTCB);
+
+	BOOL isRet = FALSE;
+	getcontext(&(_runningTCB->context));
+	if (isRet == FALSE){
+		isRet = TRUE;
+		freeBlockedThreads();
+		runNextThread();
+		return -1;//runNextThread nao volta
+	}
 	return 0;
 }
 
@@ -170,12 +182,18 @@ void mainThread(){
 		ucontext_t* context = create_end_context();
 		_runningTCB = create_tcb(*context);
 
+		startTimer();
 		inic = TRUE;
 	}
 }
 
 void endThread(){
-	//TODO
+	_runningTCB->prio += stopTimer();
+	_runningTCB->state = PROCST_TERMINO;
+	InsertByPrio(finished_queue, _runningTCB);
+	checkJoinRequests();
+	freeBlockedThreads();
+	runNextThread();
 }
 
 void runThread(TCB_t* _tcb){
@@ -184,6 +202,10 @@ void runThread(TCB_t* _tcb){
 
 void runNextThread(){
 	//TODO
+	FirstFila2(ready_queue);
+	_runningTCB = ready_queue->it->node;
+	DeleteAtIteratorFila2(ready_queue);
+	setcontext(&(_runningTCB->context));
 }
 
 void freeBlockedThreads(){
@@ -193,6 +215,10 @@ void freeBlockedThreads(){
 void insertReadyQueue(TCB_t* tcb){
 	tcb->state = PROCST_APTO;
 	InsertByPrio(ready_queue, tcb);
+}
+
+void checkJoinRequests(){
+	//TODO
 }
 
 /*##############################################################
