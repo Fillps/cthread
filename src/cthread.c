@@ -62,7 +62,6 @@ int cidentify(char *name, int size){
 	strncpy(name,names,size);
 	name[size - 1] = '\0'; //strnpy nao adiciona o fim da string
 	return strlen(name)-strlen(names);
-
 }
 
 /*
@@ -149,8 +148,8 @@ void mainThread(){
 		
 		//alocacao e criacao das as filas
 		ready_queue = malloc(sizeof(*ready_queue));
-		finished_queue = malloc(sizeof(finished_queue));
-		blocked_queue = malloc(sizeof(blocked_queue));
+		finished_queue = malloc(sizeof(*finished_queue));
+		blocked_queue = malloc(sizeof(*blocked_queue));
 
 		if (ready_queue==NULL || 
 			finished_queue==NULL || 
@@ -166,7 +165,7 @@ void mainThread(){
 			perror("Falha ao criar as filas");
 			exit(-1);
 		}
-
+		
 		//adiciona para a thread em execucao
 		ucontext_t* context = create_end_context();
 		_runningTCB = create_tcb(*context);
