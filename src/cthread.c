@@ -58,7 +58,7 @@ ucontext_t* create_end_context();
 */
 
 int cidentify(char *name, int size){
-	char *names = "Filipe Santos - 273175\nCamilla - \nMarcelo - ";
+	char *names = "Filipe Santos - 273175\nCamilla - 237738\nMarcelo - 230090";
 	strncpy(name,names,size);
 	name[size - 1] = '\0'; //strnpy nao adiciona o fim da string
 	return strlen(name)-strlen(names);
