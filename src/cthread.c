@@ -157,7 +157,7 @@ int cjoin(int tid){
 
 int csem_init(csem_t *sem, int count){
 	sem->count = count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
-    sem->fila = (PFILA2) malloc(sizeof(FILA2));
+    sem->fila = (PFILA2) malloc(sizeof(PFILA2));
     if (CreateFila2(sem->fila) != 0) {return CSEM_INIT_ERROR;}
     return CSEM_INIT_SUCCESS;
 }
@@ -174,18 +174,22 @@ int csem_init(csem_t *sem, int count){
 #define CWAIT_ERROR -1
 int cwait (csem_t *sem) {
     if (sem->fila == NULL) {
-        sem->fila = (PFILA2) malloc(sizeof(FILA2));
+        sem->fila = (PFILA2) malloc(sizeof(PFILA2));
         if (CreateFila2(sem->fila) != 0) {return CWAIT_ERROR;}
     }
 
     sem->count--;
     if (sem->count < 0) {
-        //TCB_t* thread;
-        //thread = _runningTCB;
-        //thread->state = PROCST_BLOQ;
-    	// coloca thread na fila de bloqueado
-    	// passa a fila
-        //_runningTCB = NULL;
+        TCB_t* thread;
+        thread = _runningTCB;
+        thread->state = PROCST_BLOQ;
+    	
+        
+        AppendFila2(&blocked_queue, (void*) thread);
+        AppendFila2(sem->fila, (void*) thread);
+        
+        _runningTCB = NULL;
+        
         // swap do contexto
     }
     return CWAIT_SUCCESS;
