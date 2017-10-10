@@ -13,7 +13,7 @@
  int InsertByPrio(PFILA2 pfila, TCB_t *tcb);
  BOOL IsFilaEmpty(PFILA2 pFILA2);
  TCB_t* create_tcb(ucontext_t context);
- TCB_t* findTBCbyTid(PFILA2 queue, int tid);
+ TCB_t* findTCBbyTid(PFILA2 queue, int tid);
 
 
  #endif

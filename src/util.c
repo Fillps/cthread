@@ -10,6 +10,9 @@
 #include "support.h"
 #include "cdata.h"
 
+#define	NXTFILA_VAZIA		1
+#define	NXTFILA_ITERINVAL	2
+#define	NXTFILA_ENDQUEUE	3
 
 
 /********************************************************************
@@ -64,14 +67,20 @@ TCB_t* create_tcb(ucontext_t context){
 /*
 *Procura uma TCB na fila por tid
 */
-TCB_t* findTBCbyTid(PFILA2 queue, int tid){
-	//TODO
-	if (IsFilaEmpty(queue)==TRUE){
-		return NULL;
+TCB_t* findTCBbyTid(PFILA2 queue, int tid){	
+	
+	if(FirstFila2(queue) == 0){
+		FirstFila2(queue); //Seta o iterador da fila no primeiro elemento
+		if(*GetAtIteratorFila2(queue) != NULL)
+			TCB_t* tcb = *GetAtIteratorFila2(queue);	
 	}
-
-	return NULL;
+	while(tcb->tid != tid){
+		if(NextFila2(queue) == 0)
+			NextFila2(queue);
+		if(*GetAtIteratorFila2(queue) != NULL)
+			tcb = *GetAtIteratorFila2(queue); 
+	}
+	
+	return tcb;
 }
-
-
 

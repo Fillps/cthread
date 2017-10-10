@@ -28,7 +28,7 @@ typedef struct s_TCB {
 	int		tid; 		// identificador da thread
 	int		state;		// estado em que a thread se encontra
 					// 0: Criação; 1: Apto; 2: Execução; 3: Bloqueado e 4: Término
-	unsigned 	int		prio;		// prioridade da thread (higest=0; lowest=3)
+	unsigned int	prio;		// prioridade da thread (higest=0; lowest=3)
 	ucontext_t 	context;	// contexto de execução da thread (SP, PC, GPRs e recursos) 
 	
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
