@@ -151,9 +151,15 @@ int cjoin(int tid){
 *Quando executada corretamente: retorna 0 (zero)
 *Caso contrário, retorna um valor negativo.
 */
+
+#define CSEM_INIT_SUCCESS 0
+#define CSEM_INIT_ERROR -1
+
 int csem_init(csem_t *sem, int count){
-	//TODO
-	return 0;
+	sem->count = count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
+    sem->fila = (PFILA2) malloc(sizeof(FILA2));
+    if (CreateFila2(sem->fila) != 0) {return CSEM_INIT_ERROR;}
+    return CSEM_INIT_SUCCESS;
 }
 
 /*
@@ -163,9 +169,26 @@ int csem_init(csem_t *sem, int count){
 *Quando executada corretamente: retorna 0 (zero)
 *Caso contrário, retorna um valor negativo.
 */
-int cwait(csem_t *sem){
-	//TODO
-	return 0;
+
+#define CWAIT_SUCCESS 0
+#define CWAIT_ERROR -1
+int cwait (csem_t *sem) {
+    if (sem->fila == NULL) {
+        sem->fila = (PFILA2) malloc(sizeof(FILA2));
+        if (CreateFila2(sem->fila) != 0) {return CWAIT_ERROR;}
+    }
+
+    sem->count--;
+    if (sem->count < 0) {
+        //TCB_t* thread;
+        //thread = _runningTCB;
+        //thread->state = PROCST_BLOQ;
+    	// coloca thread na fila de bloqueado
+    	// passa a fila
+        //_runningTCB = NULL;
+        // swap do contexto
+    }
+    return CWAIT_SUCCESS;
 }
 
 /*
