@@ -71,14 +71,14 @@ TCB_t* findTCBbyTid(PFILA2 queue, int tid){
 	
 	if(FirstFila2(queue) == 0){
 		FirstFila2(queue); //Seta o iterador da fila no primeiro elemento
-		if(*GetAtIteratorFila2(queue) != NULL)
-			TCB_t* tcb = *GetAtIteratorFila2(queue);	
+		if(GetAtIteratorFila2(queue) != NULL)
+			TCB_t* tcb = GetAtIteratorFila2(queue);	
 	}
 	while(tcb->tid != tid){
 		if(NextFila2(queue) == 0)
 			NextFila2(queue);
-		if(*GetAtIteratorFila2(queue) != NULL)
-			tcb = *GetAtIteratorFila2(queue); 
+		if(GetAtIteratorFila2(queue) != NULL)
+			tcb = GetAtIteratorFila2(queue); 
 	}
 	
 	return tcb;
