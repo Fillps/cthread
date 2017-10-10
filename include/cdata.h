@@ -1,9 +1,9 @@
 /*
- * cdata.h: arquivo de inclusão de uso apenas na geração da libpithread
+ * cdata.h: arquivo de inclusÃ£o de uso apenas na geraÃ§Ã£o da libpithread
  *
  * Esse arquivo pode ser modificado. ENTRETANTO, deve ser utilizada a TCB fornecida
  *
- * Versão de 11/09/2017
+ * VersÃ£o de 11/09/2017
  *
  */
 #ifndef __cdata__
@@ -22,19 +22,24 @@
 #define PRIO_BAIXA 3
 
 /* Os campos "tid", "state", "prio" e "context" dessa estrutura devem ser mantidos e usados convenientemente
-   Pode-se acrescentar outros campos APÓS os campos obrigatórios dessa estrutura
+   Pode-se acrescentar outros campos APÃ“S os campos obrigatÃ³rios dessa estrutura
 */
 typedef struct s_TCB { 
 	int		tid; 		// identificador da thread
 	int		state;		// estado em que a thread se encontra
-					// 0: Criação; 1: Apto; 2: Execução; 3: Bloqueado e 4: Término
+					// 0: CriaÃ§Ã£o; 1: Apto; 2: ExecuÃ§Ã£o; 3: Bloqueado e 4: TÃ©rmino
 	unsigned int	prio;		// prioridade da thread (higest=0; lowest=3)
-	ucontext_t 	context;	// contexto de execução da thread (SP, PC, GPRs e recursos) 
+	ucontext_t 	context;	// contexto de execuÃ§Ã£o da thread (SP, PC, GPRs e recursos) 
 	
-	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
+	/* Se necessÃ¡rio, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
 	void* _joinRequestTCB;
 } TCB_t; 
+
+typedef struct s_sem {
+    int count; // indica se recurso estaÌ ocupado ou naÌƒo (livre > 0, ocupado â‰¤ 0)
+    PFILA2 fila; // ponteiro para uma fila de threads bloqueadas no semaÌforo.
+} csem_t;
 
 
 #endif
