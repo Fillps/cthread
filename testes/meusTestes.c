@@ -60,6 +60,13 @@ BOOL teste_create_context(){
 	setcontext(create_context(teste,NULL));
 }
 
+BOOL teste_cjoin(){
+	int tid = ccreate(teste,NULL,0);
+	
+	int tid2 = ccreate(teste,NULL,0);
+	cjoin(tid);
+	cjoin(tid2);
+}
 int main(void){
 	printf("teste_cidentify: %i \n",teste_cidentify());
 	//printf("teste_ccreate: %i \n",teste_ccreate());
@@ -67,6 +74,8 @@ int main(void){
 	printf("ccreate tid: %i \n",ccreate(teste,NULL,0));
 	cyield();
 	printf("retorno de teste, main terminando\n");
+
+	teste_cjoin();
 
 	return 0;
 }

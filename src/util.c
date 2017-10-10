@@ -1,4 +1,4 @@
- 
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,21 +66,20 @@ TCB_t* create_tcb(ucontext_t context){
 
 /*
 *Procura uma TCB na fila por tid
+*return 0 se achou
+*	  < 0 se não foi encontrado
 */
-TCB_t* findTCBbyTid(PFILA2 queue, int tid){	
-	
-	if(FirstFila2(queue) == 0){
-		FirstFila2(queue); //Seta o iterador da fila no primeiro elemento
-		if(GetAtIteratorFila2(queue) != NULL)
-			TCB_t* tcb = GetAtIteratorFila2(queue);	
-	}
+BOOL findTCBbyTid(PFILA2 queue, int tid){	
+	TCB_t* tcb;
+	if(FirstFila2(queue) != 0)
+		return FALSE;
+	tcb = GetAtIteratorFila2(queue);	
 	while(tcb->tid != tid){
-		if(NextFila2(queue) == 0)
-			NextFila2(queue);
-		if(GetAtIteratorFila2(queue) != NULL)
-			tcb = GetAtIteratorFila2(queue); 
+		if(NextFila2(queue) != 0)
+			return FALSE; 
+		tcb = queue->it->node;
 	}
-	
-	return tcb;
+	return TRUE;
 }
+
 

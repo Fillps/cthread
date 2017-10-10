@@ -97,7 +97,6 @@ int cyield(void){
 	getcontext(&(_runningTCB->context));
 	if (isRet == FALSE){
 		isRet = TRUE;
-		freeBlockedThreads();
 		runNextThread();
 		return -1;//runNextThread nao volta
 	}
@@ -115,17 +114,19 @@ int cjoin(int tid){
 	_runningTCB->prio += stopTimer();
 
 	TCB_t* joinRequest;
-	if ((joinRequest = findTBCbyTid(finished_queue, tid))!=NULL){	
+	if (findTCBbyTid(finished_queue, tid)==TRUE){	
 		insertReadyQueue(_runningTCB);
 	}
-	else if ((joinRequest = findTBCbyTid(ready_queue, tid))!=NULL){
+	else if (findTCBbyTid(ready_queue, tid)==TRUE){
 		_runningTCB->state = PROCST_BLOQ;
 		InsertByPrio(blocked_queue, _runningTCB);
+		joinRequest = ready_queue->it->node;
 		joinRequest->_joinRequestTCB = _runningTCB;
 	}
-	else if ((joinRequest = findTBCbyTid(blocked_queue, tid))!=NULL){
+	else if (findTCBbyTid(blocked_queue, tid)==TRUE){
 		_runningTCB->state = PROCST_BLOQ;
 		InsertByPrio(blocked_queue, _runningTCB);
+		joinRequest = blocked_queue->it->node;
 		joinRequest->_joinRequestTCB = _runningTCB;
 	}
 	else{
@@ -137,7 +138,6 @@ int cjoin(int tid){
 	getcontext(&(_runningTCB->context));
 	if (isRet == FALSE){
 		isRet = TRUE;
-		freeBlockedThreads();
 		runNextThread();
 		return -1;//runNextThread nao volta
 	}
@@ -220,25 +220,43 @@ void endThread(){
 	_runningTCB->state = PROCST_TERMINO;
 	InsertByPrio(finished_queue, _runningTCB);
 	updateJoinRequests(_runningTCB);
-	freeBlockedThreads();
 	runNextThread();
-}
-
-void runThread(TCB_t* _tcb){
-	//TODO
+	perror("Sem threads na fila de aptos");
 }
 
 void runNextThread(){
 	//TODO
-	FirstFila2(ready_queue);
-	_runningTCB = ready_queue->it->node;
-	DeleteAtIteratorFila2(ready_queue);
-	startTimer();
-	setcontext(&(_runningTCB->context));
+	freeBlockedThreads();
+	if(FirstFila2(ready_queue)==0){
+		_runningTCB = ready_queue->it->node;
+		DeleteAtIteratorFila2(ready_queue);
+		startTimer();
+		setcontext(&(_runningTCB->context));
+	}
 }
 
+/*
+*Libera todas as threads que não possuem mais impedimentos de serem aptas.
+*(por semáforo ou por join, se for join, o estado dela já foi mudado para apta, 
+*mas ainda continua na lista de bloquedas).
+*Sendo assim, percorre a lista de bloqueados verificando se cada thread ja foi liberada, 
+*passando ela para a lista de aptas.
+*/
 void freeBlockedThreads(){
-	//TODO
+	TCB_t* tcb;
+	if(FirstFila2(blocked_queue) != 0)
+		return;
+	
+	tcb = GetAtIteratorFila2(blocked_queue);	
+	while(TRUE){
+		if(tcb->state == PROCST_APTO){
+			InsertByPrio(ready_queue, GetAtIteratorFila2(blocked_queue));
+			DeleteAtIteratorFila2(blocked_queue);
+		}
+		if(NextFila2(blocked_queue) != 0)
+				return;
+		tcb = blocked_queue->it->node;
+	}
 }
 
 void insertReadyQueue(TCB_t* tcb){
