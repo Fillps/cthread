@@ -10,74 +10,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <assert.h>
 
-
-BOOL teste_cidentify(){
-	char good[100];
-	int i = cidentify(good, 100);
-	if (i<0){
-		printf("%s \n",good);
-		return FALSE;
-	}
-	char bad[2];
-	i = cidentify(bad, 2);
-	
-	if (i>=0){
-		printf("\n%i | %s \n",i,bad);
-		return FALSE;
-	}
-	return TRUE;
-}
-void* teste_ccreate_func(void* arg){
-	while(1){
-		printf("teste_ccreate_func\n");
-	}
-	return NULL;
+void printInfo(char *msg){
+    char *info = malloc(sizeof(char)*500);
+    getThreadsInfo(info, 500);
+    printf("%s\n%s\n--------------------------\n",msg,info);
+    free(info);
 }
 
-BOOL teste_ccreate(){
+void* test_ccreate_func(void* arg){
 
-	ccreate(teste_ccreate_func,(void*) NULL,0);
-	return TRUE;
 }
 
-BOOL teste_create_tcb(){
-	ucontext_t context;
-	TCB_t* tcb1 = create_tcb(context);
-	TCB_t* tcb2 = create_tcb(context);
-
-	if (tcb1->tid != tcb2->tid - 1)
-		return FALSE;
-	return TRUE;
+void test_cidentify(void){
+    char good[100];
+    int i = cidentify(good, 100);
+    assert(0==i);
+    char bad[2];
+    i = cidentify(bad, 2);
+    assert(0>i);
+    printf("%s: PASS\n", __func__);
 }
 
-void* teste(void* arg){
-	printf("funcao teste.\n");
+void test_ccreate(void) {
+    reset();
+
+    //teste de continuidade dos tids
+    assert(1==ccreate(test_ccreate_func,NULL,0));
+    assert(2==ccreate(test_ccreate_func,NULL,0));
+    assert(3==ccreate(test_ccreate_func,NULL,0));
+    printf("%s: PASS\n", __func__);
+
 }
 
-BOOL teste_create_context(){
-	ccreate(teste,NULL,0);
-	setcontext(create_context(teste,NULL));
+void* test_cyield_func(void* arg){
+    int *i = arg;
+    *i = 1;
 }
 
-BOOL teste_cjoin(){
-	int tid = ccreate(teste,NULL,0);
-	
-	int tid2 = ccreate(teste,NULL,0);
-	cjoin(tid);
-	cjoin(tid2);
-}
-int main(void){
-	printf("teste_cidentify: %i \n",teste_cidentify());
-	//printf("teste_ccreate: %i \n",teste_ccreate());
-	//printf("teste_create_tcb: %i \n",teste_create_tcb());
-	printf("ccreate tid: %i \n",ccreate(teste,NULL,0));
-	cyield();
-	printf("retorno de teste, main terminando\n");
+void test_cyield(void){
+    reset();
 
-	teste_cjoin();
+    int *i = malloc(sizeof(int));
+    *i = 0;
+    int tid = ccreate(test_cyield_func,(void*) i,0);
+    cyield();
+    assert(*i==1);
+    printf("%s: PASS\n", __func__);
+}
+
+
+void* test_cjoin_func(void* arg){
+    int* i = arg;
+    int val = *i;
+    while (*i<val*val){
+        cyield();
+        *i += 1;
+    }
+}
+
+void test_cjoin(void){
+    reset();
+
+    int v1 = Random2()/1000;
+    int v2 = Random2()/1000;
+    int* i = malloc(sizeof(int));
+    int* j = malloc(sizeof(int));
+    *i = v1;
+    *j = v2;
+    int t1 = ccreate(test_cjoin_func,i,0);
+    int t2 = ccreate(test_cjoin_func,j,0);
+    cjoin(t2);
+    assert(*j == v2*v2);
+    cjoin(t1);
+    assert(*i == v1*v1);
+    printf("%s: PASS\n", __func__);
+}
+
+
+int main(void) {
+
+	test_cidentify();
+    test_ccreate();
+    test_cyield();
+    test_cjoin();
 
 	return 0;
 }
-
 #endif

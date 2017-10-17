@@ -9,6 +9,7 @@
 #ifndef __cdata__
 #define __cdata__
 #include "ucontext.h"
+#include "support.h"
 
 #define	PROCST_CRIACAO	0
 #define	PROCST_APTO	1
@@ -33,7 +34,7 @@ typedef struct s_TCB {
 	
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
-	void* _joinRequestTCB;
+	PFILA2 _joinRequestFILA2;
 } TCB_t; 
 
 typedef struct s_sem {

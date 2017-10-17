@@ -10,14 +10,9 @@
 #ifndef __cthread__
 #define __cthread__
 
-#include "support.h"
+#include "cdata.h"
 
-typedef struct s_sem {
-	int	count;	// indica se recurso está ocupado ou não (livre > 0, ocupado = 0)
-	PFILA2	fila; 	// ponteiro para uma fila de threads bloqueadas no semáforo
-} csem_t;
-
-int cidentify (char *name, int size);
+int cidentify (char *str, int size);
 
 int ccreate (void* (*start)(void*), void *arg, int prio);
 //int csetprio(int tid, int prio);	// Essa função não será utilizada em 2017/2
@@ -29,9 +24,8 @@ int csignal(csem_t *sem);
 
 //###########################   APENAS PARA TESTES, DEVERA SER REMOVIDO   ############################
 #include <ucontext.h>
-void mainThread();
+void startCThread();
 void endThread();
-ucontext_t* setup_context(ucontext_t* next_context);
-ucontext_t* create_context(void* (*start)(void*), void *arg);
-ucontext_t* create_end_context();
+void reset();
+int getThreadsInfo(char *str, int size);
 #endif
