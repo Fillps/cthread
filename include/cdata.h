@@ -18,9 +18,7 @@
 #define	PROCST_TERMINO	4
 
 #define PRIO_MAX 0
-#define PRIO_ALTA 1
-#define PRIO_MEDIA 2
-#define PRIO_BAIXA 3
+
 
 /* Os campos "tid", "state", "prio" e "context" dessa estrutura devem ser mantidos e usados convenientemente
    Pode-se acrescentar outros campos APÓS os campos obrigatórios dessa estrutura
@@ -37,10 +35,6 @@ typedef struct s_TCB {
 	PFILA2 _joinRequestFILA2;
 } TCB_t; 
 
-typedef struct s_sem {
-    int count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
-    PFILA2 fila; // ponteiro para uma fila de threads bloqueadas no semáforo.
-} csem_t;
 
 
 #endif

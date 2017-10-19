@@ -7,17 +7,34 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "util.h"
-#include "support.h"
-#include "cdata.h"
 
 #define	NXTFILA_VAZIA		1
 #define	NXTFILA_ITERINVAL	2
 #define	NXTFILA_ENDQUEUE	3
 
 
+
 static int tid_global = 0;
+
+
+//*funcoes que definem se deve inicializar a cthread
+
+static BOOL inic = FALSE;
+
+BOOL isInic(){
+    return inic;
+}
+
+void setInic(BOOL ini){
+    if (ini==TRUE || ini==FALSE)
+        inic = ini;
+}
+
+void reset(){
+    tid_global = 0;
+    setInic(FALSE);
+}
 
 /*
 *Inicia o TCB com os valores de criacao de thread
@@ -88,8 +105,8 @@ BOOL IsFilaEmpty(PFILA2 pFILA2){
 
 /*
 *Procura uma TCB na fila por tid
-*return 0 se achou
-*	  < 0 se não foi encontrado
+*return TRUE se achou
+*	    FALSE se não foi encontrado
 */
 BOOL findTCBbyTid(PFILA2 queue, int tid){
     if (FirstFila2(queue)==0){
@@ -101,7 +118,18 @@ BOOL findTCBbyTid(PFILA2 queue, int tid){
     }
     return FALSE;
 }
-
+/*
+*Procura uma TCB na fila por tid remove
+*return TRUE se removeu
+*	    FALSE se não foi encontrado
+*/
+BOOL removeTCBbyTid(PFILA2 queue, int tid) {
+    if (findTCBbyTid(queue, tid)==TRUE) {
+        DeleteAtIteratorFila2(queue);
+        return TRUE;
+    }
+    return FALSE;
+}
 
 int printFila2(PFILA2 fila, char *str, int size){
     char *ret;
@@ -132,10 +160,6 @@ void startClock(){
 
 unsigned int getRunningTime(){
     return clock() - begin;
-}
-
-void resetTID(){
-    tid_global = 0;
 }
 
 

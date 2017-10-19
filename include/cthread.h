@@ -10,7 +10,12 @@
 #ifndef __cthread__
 #define __cthread__
 
-#include "cdata.h"
+#include "support.h"
+
+typedef struct s_sem {
+    int	count;	// indica se recurso está ocupado ou não (livre > 0, ocupado = 0)
+    PFILA2	fila; 	// ponteiro para uma fila de threads bloqueadas no semáforo
+} csem_t;
 
 int cidentify (char *str, int size);
 
@@ -23,10 +28,5 @@ int cwait(csem_t *sem);
 int csignal(csem_t *sem);
 
 //###########################   APENAS PARA TESTES, DEVERA SER REMOVIDO   ############################
-#include <ucontext.h>
-void startCThread();
-void endThread();
-void reset();
 int getThreadsInfo(char *str, int size);
-int remove_thread(int tid, PFILA2 queue);
 #endif

@@ -10,15 +10,21 @@
 #define TRUE 	1
 #define FALSE 	0
 
+BOOL isInic();
+void setInic(BOOL ini);
+void reset();
+
+TCB_t* create_tcb(ucontext_t* context);
+char* printTCB(TCB_t* tcb);
+
 int InsertByPrio(PFILA2 pfila, TCB_t *tcb);
 BOOL IsFilaEmpty(PFILA2 pFILA2);
-TCB_t* create_tcb(ucontext_t* context);
 BOOL findTCBbyTid(PFILA2 queue, int tid);
+BOOL removeTCBbyTid(PFILA2 queue, int tid);
 int printFila2(PFILA2 fila, char *str, int size);
-char* printTCB(TCB_t* tcb);
+
 void startClock();
 unsigned int getRunningTime();
-void resetTID();
 
 ucontext_t* setup_empty_context();
 ucontext_t* setup_context(ucontext_t* next_context);

@@ -1,35 +1,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ucontext.h>
-
-#include "cthread.h"
-#include "support.h"
-#include "util.h"
-#include "cdata.h"
-
-//Perguntar se pode usar
-#include <signal.h>
-//temp - para testes
 #include <stdio.h>
 
-//VARIAVEIS GLOBAIS
+#include "cthread.h"
+#include "util.h"
+
 
 //	FILAS DE THREAD
 PFILA2 ready_queue; 
 PFILA2 blocked_queue;
 PFILA2 finished_queue;
 
-//	TCB executando no moment
+//	TCB executando no momento
 TCB_t* _runningTCB;
-
-
-int cidentify (char *str, int size);
-int ccreate (void* (*start)(void*), void *arg, int prio);
-int cyield(void);
-int cjoin(int tid);
-int csem_init(csem_t *sem, int count);
-int cwait(csem_t *sem);
-int csignal(csem_t *sem);
 
 void startCThread();
 int swapThread();
@@ -37,7 +21,6 @@ void endThread();
 void runNextThread();
 void freeBlockedThreads();
 void updateJoinRequests(TCB_t* tcb);
-
 
 int getThreadsInfo(char *str, int size);
 
@@ -141,7 +124,7 @@ int csem_init(csem_t *sem, int count){
 
     //Inicializa o semaforo
 	sem->count = count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
-    sem->fila = (PFILA2) malloc(sizeof(PFILA2));
+    sem->fila = malloc(sizeof(PFILA2*));
     if (CreateFila2(sem->fila) != 0) 
         return CSEM_INIT_ERROR;
 
@@ -160,22 +143,23 @@ int csem_init(csem_t *sem, int count){
 #define CWAIT_ERROR -1
 
 int cwait (csem_t *sem) {
+    startCThread();
+
     if (sem->fila == NULL) {
-        sem->fila = (PFILA2) malloc(sizeof(PFILA2));
+        sem->fila = malloc(sizeof(PFILA2*));
         if (CreateFila2(sem->fila) != 0) {return CWAIT_ERROR;}
     }
 
     sem->count--;
-    if (sem->count <= 0) {
+    if (sem->count < 0) {
         TCB_t* thread;
         thread = _runningTCB;
         thread->state = PROCST_BLOQ;
+        thread->prio += getRunningTime();
     	
-        AppendFila2(&blocked_queue, (void*) thread);
+        AppendFila2(blocked_queue, (void*) thread);
         // Adiciona a thread atual no semaforo em questao ja que este semaforo esta bloqueado
-        AppendFila2(sem->fila, (void*) thread);
-        
-        _runningTCB = NULL;
+        InsertByPrio(sem->fila, (void*) thread);
         
         swapThread();
     }
@@ -194,6 +178,8 @@ int cwait (csem_t *sem) {
 #define CSIGNAL_ERROR -1
 
 int csignal(csem_t *sem){
+    startCThread();
+
 	sem->count++;
     if (sem->fila == NULL) {
         return CSIGNAL_ERROR;
@@ -210,8 +196,6 @@ int csignal(csem_t *sem){
     thread = (TCB_t*) GetAtIteratorFila2(sem->fila);
     thread->state = PROCST_APTO;
 
-    remove_thread(thread->tid, &blocked_queue);
-    AppendFila2(&ready_queue, thread);
     DeleteAtIteratorFila2(sem->fila);
     
     return CSIGNAL_SUCCESS;
@@ -219,22 +203,21 @@ int csignal(csem_t *sem){
 }
 
 //##############################################################
-static BOOL inic = FALSE;
 
-void reset(){
-    inic = FALSE;
+void resetCThread(){
     free(ready_queue);
     free(finished_queue);
     free(blocked_queue);
     free(_runningTCB);
-    resetTID();
-    startCThread();
 }
 
 void startCThread(){
 
-	if (inic==FALSE){
-		
+	if (isInic()==FALSE){
+
+        if (_runningTCB!=NULL)
+            resetCThread();
+
 		//alocacao e criacao das as filas
 		ready_queue = malloc(sizeof(*ready_queue));
 		finished_queue = malloc(sizeof(*finished_queue));
@@ -258,9 +241,10 @@ void startCThread(){
 		//adiciona para a thread em execucao
 		ucontext_t* context = create_end_context((void*) &endThread);
 		_runningTCB = create_tcb(context);
+        _runningTCB->state = PROCST_EXEC;
 
         startClock();
-		inic = TRUE;
+		setInic(TRUE);
 	}
 }
 
@@ -287,6 +271,7 @@ void runNextThread(){
 	if(FirstFila2(ready_queue)==0){
 		_runningTCB = ready_queue->it->node;
 		DeleteAtIteratorFila2(ready_queue);
+        _runningTCB->state = PROCST_EXEC;
 		startClock();
 		setcontext(&(_runningTCB->context));
 	}
@@ -334,36 +319,6 @@ int getThreadsInfo(char *str, int size){
     str[size - 1] = '\0';
     free(info);
     return strlen(str)-strlen(info);
-}
-
-/*
-*
-* Remover determinada thread da fila de threads.
-*
-*/
-
-int remove_thread(int tid, PFILA2 queue){
-    if(FirstFila2(queue) != 0) {
-        return -1;
-    }
-    TCB_t* thread;
-    do {
-        if (queue->it == 0) {
-            return -1;
-        }
-        thread = GetAtIteratorFila2(queue);
-        if (thread == NULL) {
-            return -1;
-        }
-        if (thread->tid == tid) {
-            if (thread != NULL) {
-                DeleteAtIteratorFila2(queue);
-                return 0;
-            }
-            break;
-        }
-    } while (NextFila2(queue) == 0);
-    return -1;
 }
 
 
