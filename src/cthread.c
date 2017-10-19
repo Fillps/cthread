@@ -138,10 +138,14 @@ int cjoin(int tid){
 #define CSEM_INIT_ERROR -1
 
 int csem_init(csem_t *sem, int count){
-	/*sem->count = count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
+
+    //Inicializa o semaforo
+	sem->count = count; // indica se recurso está ocupado ou não (livre > 0, ocupado ≤ 0)
     sem->fila = (PFILA2) malloc(sizeof(PFILA2));
-    if (CreateFila2(sem->fila) != 0) {return CSEM_INIT_ERROR;}
-    return CSEM_INIT_SUCCESS;*/
+    if (CreateFila2(sem->fila) != 0) 
+        return CSEM_INIT_ERROR;
+
+    return CSEM_INIT_SUCCESS;
 }
 
 /*
@@ -154,27 +158,28 @@ int csem_init(csem_t *sem, int count){
 
 #define CWAIT_SUCCESS 0
 #define CWAIT_ERROR -1
+
 int cwait (csem_t *sem) {
-    /*if (sem->fila == NULL) {
+    if (sem->fila == NULL) {
         sem->fila = (PFILA2) malloc(sizeof(PFILA2));
         if (CreateFila2(sem->fila) != 0) {return CWAIT_ERROR;}
     }
 
     sem->count--;
-    if (sem->count < 0) {
+    if (sem->count <= 0) {
         TCB_t* thread;
         thread = _runningTCB;
         thread->state = PROCST_BLOQ;
     	
-        
         AppendFila2(&blocked_queue, (void*) thread);
+        // Adiciona a thread atual no semaforo em questao ja que este semaforo esta bloqueado
         AppendFila2(sem->fila, (void*) thread);
         
         _runningTCB = NULL;
         
-        // swap do contexto
+        swapThread();
     }
-    return CWAIT_SUCCESS;*/
+    return CWAIT_SUCCESS;
 }
 
 /*
@@ -184,9 +189,33 @@ int cwait (csem_t *sem) {
 *Quando executada corretamente: retorna 0 (zero)
 *Caso contrário, retorna um valor negativo.
 */
+
+#define CSIGNAL_SUCCESS 0
+#define CSIGNAL_ERROR -1
+
 int csignal(csem_t *sem){
-	//TODO
-	return 0;
+	sem->count++;
+    if (sem->fila == NULL) {
+        return CSIGNAL_ERROR;
+    }
+
+    if (FirstFila2(sem->fila) != 0) {
+        freeBlockedThreads();
+        return CSIGNAL_SUCCESS;
+    }
+
+    
+    TCB_t* thread;
+    //Retorna o ponteiro armazenado no conteúdo do item endereçado pelo iterador da fila.
+    thread = (TCB_t*) GetAtIteratorFila2(sem->fila);
+    thread->state = PROCST_APTO;
+
+    remove_thread(thread->tid, &blocked_queue);
+    AppendFila2(&ready_queue, thread);
+    DeleteAtIteratorFila2(sem->fila);
+    
+    return CSIGNAL_SUCCESS;
+
 }
 
 //##############################################################
@@ -305,6 +334,36 @@ int getThreadsInfo(char *str, int size){
     str[size - 1] = '\0';
     free(info);
     return strlen(str)-strlen(info);
+}
+
+/*
+*
+* Remover determinada thread da fila de threads.
+*
+*/
+
+int remove_thread(int tid, PFILA2 queue){
+    if(FirstFila2(queue) != 0) {
+        return -1;
+    }
+    TCB_t* thread;
+    do {
+        if (queue->it == 0) {
+            return -1;
+        }
+        thread = GetAtIteratorFila2(queue);
+        if (thread == NULL) {
+            return -1;
+        }
+        if (thread->tid == tid) {
+            if (thread != NULL) {
+                DeleteAtIteratorFila2(queue);
+                return 0;
+            }
+            break;
+        }
+    } while (NextFila2(queue) == 0);
+    return -1;
 }
 
 

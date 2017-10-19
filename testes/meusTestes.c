@@ -5,6 +5,7 @@
 #include "../include/cthread.h"
 #include "../include/cdata.h"
 #include "../include/util.h"
+#include "../include/support.h"
 
 //#include <ucontext.h>
 #include <stdio.h>
@@ -12,6 +13,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
+
+csem_t semaforo;
 
 void printInfo(char *msg){
     char *info = malloc(sizeof(char)*500);
@@ -89,6 +93,30 @@ void test_cjoin(void){
     printf("%s: PASS\n", __func__);
 }
 
+void* aux_test_wait_signal(void* arg)
+{
+    printf("Inicio.\n");
+    cwait(&semaforo);
+    printf("Zona Critica.\n");
+    csignal(&semaforo);
+    printf("Fim.\n");
+    return 0;
+}
+
+void test_wait_signal()
+{
+    int pid_filha;
+    csem_init(&semaforo, 1);
+    pid_filha = ccreate(aux_test_wait_signal,NULL,0);
+
+    cwait(&semaforo);
+    printf("MAIN - Zona Critica \n");
+    cyield();cyield();cyield();cyield();
+    csignal(&semaforo);
+    cjoin(pid_filha);
+    printf("MAIN Fim\n");
+
+}
 
 int main(void) {
 
@@ -96,6 +124,7 @@ int main(void) {
     test_ccreate();
     test_cyield();
     test_cjoin();
+    test_wait_signal();
 
 	return 0;
 }

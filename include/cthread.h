@@ -28,4 +28,5 @@ void startCThread();
 void endThread();
 void reset();
 int getThreadsInfo(char *str, int size);
+int remove_thread(int tid, PFILA2 queue);
 #endif
