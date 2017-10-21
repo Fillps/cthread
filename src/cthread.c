@@ -269,7 +269,6 @@ void endThread(){
 }
 
 void runNextThread(){
-	freeBlockedThreads();
 	if(FirstFila2(ready_queue)==0){
 		_runningTCB = ready_queue->it->node;
 		DeleteAtIteratorFila2(ready_queue);
@@ -305,6 +304,7 @@ void updateJoinRequests(TCB_t* tcb){
         _joinTCB->state = PROCST_APTO;
         DeleteAtIteratorFila2(tcb->_joinRequestFILA2);
     }
+    freeBlockedThreads();
 }
 
 
