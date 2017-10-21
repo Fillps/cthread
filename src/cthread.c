@@ -69,7 +69,7 @@ int ccreate (void* (*start)(void*), void *arg, int prio){
 */
 int cyield(void){
     startCThread();
-	_runningTCB->prio += getRunningTime();
+    updatePrio(_runningTCB);
 	_runningTCB->state = PROCST_APTO;
     InsertByPrio(ready_queue, _runningTCB);
     return swapThread();
@@ -84,7 +84,7 @@ int cyield(void){
 */
 int cjoin(int tid){
     startCThread();
-	_runningTCB->prio += getRunningTime();
+    updatePrio(_runningTCB);
 
 	TCB_t* joinRequest;
 	if (findTCBbyTid(finished_queue, tid)==TRUE){
@@ -152,15 +152,14 @@ int cwait (csem_t *sem) {
 
     sem->count--;
     if (sem->count < 0) {
-        TCB_t* thread;
-        thread = _runningTCB;
-        thread->state = PROCST_BLOQ;
-        thread->prio += getRunningTime();
-    	
-        AppendFila2(blocked_queue, (void*) thread);
+
+        _runningTCB->state = PROCST_BLOQ;
+        updatePrio(_runningTCB);
+
+        AppendFila2(blocked_queue, _runningTCB);
         // Adiciona a thread atual no semaforo em questao ja que este semaforo esta bloqueado
-        InsertByPrio(sem->fila, (void*) thread);
-        
+        AppendFila2(sem->fila, (void*) _runningTCB->tid);
+
         swapThread();
     }
     return CWAIT_SUCCESS;
@@ -181,25 +180,28 @@ int csignal(csem_t *sem){
     startCThread();
 
 	sem->count++;
-    if (sem->fila == NULL) {
+    if (sem->fila == NULL)
         return CSIGNAL_ERROR;
-    }
 
-    if (FirstFila2(sem->fila) != 0) {
-        freeBlockedThreads();
+    if (FirstFila2(sem->fila) != 0)
         return CSIGNAL_SUCCESS;
-    }
 
-    
-    TCB_t* thread;
-    //Retorna o ponteiro armazenado no conteúdo do item endereçado pelo iterador da fila.
-    thread = (TCB_t*) GetAtIteratorFila2(sem->fila);
+    //Retorna o tid bloqueado armazenado no nodo da fila do semáforo.
+    int tid = (int) GetAtIteratorFila2(sem->fila);
+
+    if (findTCBbyTid(blocked_queue, tid)==FALSE)
+        return CSIGNAL_ERROR;
+    TCB_t* thread = GetAtIteratorFila2(blocked_queue);
     thread->state = PROCST_APTO;
 
-    DeleteAtIteratorFila2(sem->fila);
-    
-    return CSIGNAL_SUCCESS;
+    //insere na lista de aptos e apaga da lista de bloqueados
+    InsertByPrio(ready_queue, thread);
+    DeleteAtIteratorFila2(blocked_queue);
 
+    //apaga da lista do semáforo
+    DeleteAtIteratorFila2(sem->fila);
+
+    return CSIGNAL_SUCCESS;
 }
 
 //##############################################################
@@ -259,7 +261,7 @@ int swapThread(){
 }
 
 void endThread(){
-	_runningTCB->prio += getRunningTime();
+	updatePrio(_runningTCB);
 	_runningTCB->state = PROCST_TERMINO;
 	AppendFila2(finished_queue, _runningTCB);
 	updateJoinRequests(_runningTCB);
@@ -281,8 +283,6 @@ void runNextThread(){
 
 /*
 *Libera todas as threads que não possuem mais impedimentos de serem aptas.
-*(por semáforo ou por join, se for join, o estado dela já foi mudado para apta, 
-*mas ainda continua na lista de bloquedas).
 *Sendo assim, percorre a lista de bloqueados verificando se cada thread ja foi liberada, 
 *passando ela para a lista de aptas.
 */

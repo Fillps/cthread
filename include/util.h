@@ -24,7 +24,8 @@ BOOL removeTCBbyTid(PFILA2 queue, int tid);
 int printFila2(PFILA2 fila, char *str, int size);
 
 void startClock();
-unsigned int getRunningTime();
+double stopClock();
+void updatePrio(TCB_t* tcb);
 
 ucontext_t* setup_empty_context();
 ucontext_t* setup_context(ucontext_t* next_context);

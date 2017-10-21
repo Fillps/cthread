@@ -33,6 +33,7 @@ typedef struct s_TCB {
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
 	PFILA2 _joinRequestFILA2;
+	double time;
 } TCB_t; 
 
 

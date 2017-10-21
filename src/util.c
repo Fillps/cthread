@@ -45,6 +45,7 @@ TCB_t* create_tcb(ucontext_t* context){
 	tcb->tid = tid_global++;
 	tcb->state = PROCST_CRIACAO;
 	tcb->prio = PRIO_MAX;
+    tcb->time = 0;
 	tcb->context = *context;
 	tcb->_joinRequestFILA2 = malloc(sizeof(PFILA2*));
     CreateFila2(tcb->_joinRequestFILA2);
@@ -55,7 +56,7 @@ char* printTCB(TCB_t* tcb){
     char *str = malloc(sizeof(char)*40);
     char *join = malloc(sizeof(char)*4);
 
-    sprintf(str,"tid:%i tempo:%i",tcb->tid,tcb->prio);
+    sprintf(str,"tid:%i prio:%u tempo: %f",tcb->tid,tcb->prio, tcb->time);
     if (FirstFila2(tcb->_joinRequestFILA2)==0) {
         strcat(str, " join:");
         do {
@@ -134,7 +135,7 @@ BOOL removeTCBbyTid(PFILA2 queue, int tid) {
 int printFila2(PFILA2 fila, char *str, int size){
     char *ret;
     if (IsFilaEmpty(fila)==TRUE){
-        ret = "FILA VAZIA";
+        ret = "\0";
     } else{
         FirstFila2(fila);
         TCB_t* tcb =  fila->it->node;
@@ -151,15 +152,18 @@ int printFila2(PFILA2 fila, char *str, int size){
     return strlen(str)-strlen(ret);
 }
 
-
 clock_t begin;
 
 void startClock(){
     begin = clock();
 }
 
-unsigned int getRunningTime(){
-    return clock() - begin;
+double stopClock(){
+    return (double) (clock() - begin)/CLOCKS_PER_SEC;
+}
+void updatePrio(TCB_t* tcb){
+    tcb->time += stopClock();
+    tcb->prio = tcb->time + 0.5; //0.5 para sempre arredondar
 }
 
 
