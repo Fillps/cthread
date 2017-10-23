@@ -8,6 +8,7 @@
 #include "../include/support.h"
 #include "../include/cthread.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 
 void* fatorial(void *i) {
@@ -15,11 +16,11 @@ void* fatorial(void *i) {
 
      n = *(int *)i;
 
-     for (; n < 1; --n)
+     for (; n >= 1; --n)
          fat = n * fat;
 
-     printf("Fatorial de %d:\n", fat);
-     return;
+     printf("Fatorial de %d: %d\n", *(int *)i, fat);
+     return NULL;
 }
 
 void* fibonnaci (void *i) {
@@ -38,15 +39,15 @@ void* fibonnaci (void *i) {
      }
 
      printf("\n");
-     return;
+     return NULL;
 }
 
 int main(int argc, char **argv) {
 	int id0, id1;
 	int i = 10;
 
-	id0 = ccreate(fatorial, (void *)&i, 0);
-	id1 = ccreate(fibonnaci, (void *)&i, 0);
+	id0 = ccreate(fatorial, (void *)&i, 1);
+	id1 = ccreate(fibonnaci, (void *)&i, 2);
 
         printf("Threads fatorial e Fibonnaci criadas...\n");
 
@@ -54,5 +55,7 @@ int main(int argc, char **argv) {
 	cjoin(id1);
 
 	printf("Main retornando para terminar o programa\n");
+
+       exit(0);
 }
 

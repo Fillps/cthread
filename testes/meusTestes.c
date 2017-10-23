@@ -5,7 +5,6 @@
 #include "../include/cthread.h"
 #include "../include/cdata.h"
 #include "../include/util.h"
-#include "../include/support.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,15 +13,8 @@
 csem_t semaforo;
 
 
-void printInfo(char *msg){
-    char *info = malloc(sizeof(char)*500);
-    getThreadsInfo(info, 500);
-    printf("%s\n%s\n--------------------------\n",msg,info);
-    free(info);
-}
-
 void* test_ccreate_func(void* arg){
-
+    return 0;
 }
 
 void test_cidentify(void){
@@ -48,17 +40,19 @@ void test_ccreate(void) {
 
 void* test_cyield_func(void* arg){
     int *i = arg;
-    *i = 1;
+    *i = *i + 1;
+    return 0;
 }
 
 void test_cyield(void){
     reset();
 
-    int *i = malloc(sizeof(int));
-    *i = 0;
-    int tid = ccreate(test_cyield_func,(void*) i,0);
-    cyield();
-    assert(*i==1);
+    int i = 0;
+    ccreate(test_cyield_func,(void*) &i,0);
+    ccreate(test_cyield_func,(void*) &i,0);
+    ccreate(test_cyield_func,(void*) &i,0);
+    cyield();cyield();cyield();cyield();
+    assert(i==3);
     printf("%s: PASS\n", __func__);
 }
 
@@ -70,6 +64,7 @@ void* test_cjoin_func(void* arg){
         cyield();
         *i += 1;
     }
+    return 0;
 }
 
 void test_cjoin(void){
@@ -91,27 +86,33 @@ void test_cjoin(void){
 }
 
 void* aux_test_wait_signal(void* arg) {
-    printf("Inicio.\n");
+    int *i = arg;
     cwait(&semaforo);
-    printf("Zona Critica.\n");
+    //ZONA CRITICA
+    *i = 2;
+    cyield();cyield();cyield();cyield();
+    assert(*i == 2);
+    //FIM DA ZONA CRITICA
     csignal(&semaforo);
-    printf("Fim.\n");
     return 0;
 }
 
 void test_wait_signal() {
     reset();
 
-    int pid_filha;
+    int pid_filha, i;
     csem_init(&semaforo, 1);
-    pid_filha = ccreate(aux_test_wait_signal,NULL,0);
+    pid_filha = ccreate(aux_test_wait_signal,&i,0);
+    i = 0; 
     cwait(&semaforo);
-    printf("MAIN - Zona Critica \n");
+    //ZONA CRITICA
     cyield();cyield();cyield();cyield();
+    assert(i == 0);
+    //FIM DA ZONA CRITICA
     csignal(&semaforo);
     cjoin(pid_filha);
-    printf("MAIN Fim\n");
-
+    assert(i == 2);
+    printf("%s: PASS\n", __func__);
 }
 
 int main(void) {

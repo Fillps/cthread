@@ -112,7 +112,7 @@ void *Philosophers(void *arg) {
 
 	*(status+2*i)='D';
 	state[i] = DONE;
-	return;
+	return NULL;
 }
 
 
@@ -120,7 +120,7 @@ void *Philosophers(void *arg) {
  
 int	main(int argc, char *argv[]) {
 	int 	ThreadId[N];
-	int	i,ret;
+	int	i;
         	
         srand((unsigned)time(NULL));
 
@@ -133,15 +133,20 @@ int	main(int argc, char *argv[]) {
 	   }
 
 	for(i = 0; i < N; i++) {
-	   if (ThreadId[i] = ccreate(Philosophers, (void *)i),0) {
+	   if ((ThreadId[i] = ccreate(Philosophers, (void *)i, 0)) < 0) {
 	      exit(0);
 	   }
 	}
 
         printf("#\n# The dinner will begin...\n");
 
-	for(i = 0; i < N; i++)
-	   ret = cjoin(ThreadId[i]);
+	for(i = 0; i < N; i++) {
+	   if (cjoin(ThreadId[i]) < 0) {
+              printf("Erro no cjoin da main...esperando a %d \n", i);
+              exit(0);
+           }
+        }
 
-        printf("\n# Diner ends... All philosophers goes to sleep...\n\n\n");	   
+        printf("\n# Diner ends... All philosophers goes to sleep...\n\n\n");	
+        exit(0);   
 }

@@ -22,7 +22,6 @@ void runNextThread();
 void freeBlockedThreads();
 void updateJoinRequests(TCB_t* tcb);
 
-int getThreadsInfo(char *str, int size);
 
 /*
 *Identificação do grupo:
@@ -205,17 +204,24 @@ int csignal(csem_t *sem){
 }
 
 //##############################################################
-
+/*
+ * Usado para remover todos as TCB das listas e da em execução
+ */
 void resetCThread(){
+    freeAllTCB(ready_queue);
     free(ready_queue);
+    freeAllTCB(finished_queue);
     free(finished_queue);
+    freeAllTCB(blocked_queue);
     free(blocked_queue);
     free(_runningTCB);
 }
-
+/*
+ * Inicializa todas as variáveis necessárias
+ */
 void startCThread(){
 
-	if (isInic()==FALSE){
+	if (isInitialized()==FALSE){
 
         if (_runningTCB!=NULL)
             resetCThread();
@@ -246,10 +252,12 @@ void startCThread(){
         _runningTCB->state = PROCST_EXEC;
 
         startClock();
-		setInic(TRUE);
+        setInitialized(TRUE);
 	}
 }
-
+/*
+ * Salva o contexto da thread atual e chama a funcão para iniciar a próxima thread
+ */
 int swapThread(){
     BOOL isRet = FALSE;
     getcontext(&(_runningTCB->context));
@@ -259,7 +267,11 @@ int swapThread(){
     }
     return 0;
 }
-
+/*
+ * Função em que todas as threads retornam após acabarem.
+ * Faz a atualização do tempo de execução, coloca a thread na fila de término e
+ * coloca em execução a proxima thread.
+ */
 void endThread(){
 	updatePrio(_runningTCB);
 	_runningTCB->state = PROCST_TERMINO;
@@ -267,7 +279,9 @@ void endThread(){
 	updateJoinRequests(_runningTCB);
 	runNextThread();
 }
-
+/*
+ * Coloca a primeiraa thread da fila de aptos em execução,pois a fila foi inserida por prioridades.
+ */
 void runNextThread(){
 	if(FirstFila2(ready_queue)==0){
 		_runningTCB = ready_queue->it->node;
@@ -297,7 +311,9 @@ void freeBlockedThreads(){
         } while (blocked_queue->it!=NULL);
     }
 }
-
+/*
+ * Percorre a lista de Join da thread em execução, as colocando em estado de APTO
+ */
 void updateJoinRequests(TCB_t* tcb){
     while(FirstFila2(tcb->_joinRequestFILA2)==0){
         TCB_t* _joinTCB = tcb->_joinRequestFILA2->it->node;
@@ -308,6 +324,7 @@ void updateJoinRequests(TCB_t* tcb){
 }
 
 
+//APENAS PARA TESTES - Pega as informções das listas e thread em execução.
 int getThreadsInfo(char *str, int size){
     char *info = malloc(sizeof(char)*1000);
     char aptos[100],bloq[100],ter[100];
@@ -319,6 +336,14 @@ int getThreadsInfo(char *str, int size){
     str[size - 1] = '\0';
     free(info);
     return strlen(str)-strlen(info);
+}
+
+//APENAS PARA TESTES - imprime todos os valores das listas e da thread em execução.
+void printInfo(char *msg){
+    char *info = malloc(sizeof(char)*500);
+    getThreadsInfo(info, 500);
+    printf("%s\n%s\n--------------------------\n",msg,info);
+    free(info);
 }
 
 

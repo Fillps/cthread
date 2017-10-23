@@ -10,8 +10,8 @@
 #define TRUE 	1
 #define FALSE 	0
 
-BOOL isInic();
-void setInic(BOOL ini);
+BOOL isInitialized();
+void setInitialized(BOOL ini);
 void reset();
 
 TCB_t* create_tcb(ucontext_t* context);
@@ -21,6 +21,7 @@ int InsertByPrio(PFILA2 pfila, TCB_t *tcb);
 BOOL IsFilaEmpty(PFILA2 pFILA2);
 BOOL findTCBbyTid(PFILA2 queue, int tid);
 BOOL removeTCBbyTid(PFILA2 queue, int tid);
+BOOL freeAllTCB(PFILA2 queue);
 int printFila2(PFILA2 fila, char *str, int size);
 
 void startClock();

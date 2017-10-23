@@ -20,20 +20,20 @@ static int tid_global = 0;
 
 //*funcoes que definem se deve inicializar a cthread
 
-static BOOL inic = FALSE;
+static BOOL initialized = FALSE;
 
-BOOL isInic(){
-    return inic;
+BOOL isInitialized(){
+    return initialized;
 }
 
-void setInic(BOOL ini){
+void setInitialized(BOOL ini){
     if (ini==TRUE || ini==FALSE)
-        inic = ini;
+        initialized = ini;
 }
 
 void reset(){
     tid_global = 0;
-    setInic(FALSE);
+    setInitialized(FALSE);
 }
 
 /*
@@ -132,6 +132,18 @@ BOOL removeTCBbyTid(PFILA2 queue, int tid) {
     return FALSE;
 }
 
+BOOL freeAllTCB(PFILA2 queue){
+    if (queue == NULL)
+        return FALSE;
+    if (FirstFila2(queue)==0){
+        do {
+            free((TCB_t*)GetAtIteratorFila2(queue));
+            DeleteAtIteratorFila2(queue);
+        } while (FirstFila2(queue)==0);
+    }
+    return TRUE;
+}
+
 int printFila2(PFILA2 fila, char *str, int size){
     char *ret;
     if (IsFilaEmpty(fila)==TRUE){
@@ -163,7 +175,7 @@ double stopClock(){
 }
 void updatePrio(TCB_t* tcb){
     tcb->time += stopClock();
-    tcb->prio = tcb->time + 0.5; //0.5 para sempre arredondar
+    tcb->prio = tcb->time*1000 + 0.5; //0.5 para sempre arredondar
 }
 
 

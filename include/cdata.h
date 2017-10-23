@@ -32,8 +32,8 @@ typedef struct s_TCB {
 	
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
-	PFILA2 _joinRequestFILA2;
-	double time;
+	PFILA2 _joinRequestFILA2;  // fila para joins
+	double time;    // tempo em segundos que a thread ja executou
 } TCB_t; 
 
 

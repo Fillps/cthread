@@ -27,6 +27,5 @@ int csem_init(csem_t *sem, int count);
 int cwait(csem_t *sem);
 int csignal(csem_t *sem);
 
-//###########################   APENAS PARA TESTES, DEVERA SER REMOVIDO   ############################
-int getThreadsInfo(char *str, int size);
+
 #endif
